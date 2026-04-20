@@ -164,6 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (bgmAudio) bgmAudio.volume = bgmVol;
   
+  // Load Version Info
+  fetch('data/version.json')
+    .then(r => r.json())
+    .then(data => {
+      const vOverlay = document.getElementById('version-overlay');
+      if (vOverlay) {
+        vOverlay.innerText = `v${data.hash} - ${data.date}`;
+      }
+    })
+    .catch(e => console.log('No version.json available'));
+
   loadCache();
   
   ['count', 'digits'].forEach(id => {
@@ -428,7 +439,7 @@ let currentLang = localStorage.getItem('game24_lang') || 'th';
 
 async function initI18n() {
   try {
-    const res = await fetch('lang.json');
+    const res = await fetch('data/lang.json');
     if (!res.ok) throw new Error("HTTP error " + res.status);
     const data = await res.json();
     translations = data;

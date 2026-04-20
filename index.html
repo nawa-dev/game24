@@ -4,11 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Game 24 - Arcade Space</title>
-    <link rel="icon" type="image/png" href="logo.png" />
+    <link rel="icon" type="image/png" href="assets/images/logo.png" />
     <!-- Confetti library for winning/solution effect -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script> -->
-    <script src="confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="style.css" />
+    <script src="js/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <!-- Particle Canvas -->
@@ -35,7 +34,7 @@
       >
         ⚙️
       </button>
-      <!-- <img src="logo.png" alt="โลโก้เกม 24" class="main-logo"> -->
+      <!-- <img src="assets/images/logo.png" alt="โลโก้เกม 24" class="main-logo"> -->
       <div class="title" data-i18n="title_main">🎯 เกม 24</div>
 
       <div class="label" style="margin-top: 0" data-i18n="label_numbers">
@@ -227,7 +226,7 @@
             />
           </div>
           <!-- Hidden audio element for BG music -->
-          <audio id="audio-bgm" src="bgm.mp3" loop autoplay></audio>
+          <audio id="audio-bgm" src="assets/audio/bgm.mp3" loop autoplay></audio>
         </div>
 
         <div id="tab-credit" class="tab-content" style="display: none">
@@ -291,6 +290,7 @@
       </div>
     </div>
 
-    <script src="script.js"></script>
+    <div id="version-overlay"></div>
+    <script src="js/script.js"></script>
   </body>
 </html>
