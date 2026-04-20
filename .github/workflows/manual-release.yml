@@ -1,0 +1,102 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version in semantic version format, for example 0.1.1
+        required: true
+        type: string
+      target_branch:
+        description: Branch to release from
+        required: true
+        default: master
+        type: string
+      prerelease:
+        description: Mark this GitHub release as a pre-release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Normalize version input
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ inputs.version }}".Trim()
+          if ($version -notmatch '^v?\d+\.\d+\.\d+$') {
+            throw "Version must look like 0.1.1 or v0.1.1"
+          }
+
+          $normalized = $version.TrimStart('v')
+          "normalized=$normalized" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.target_branch }}
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Validate requested version
+        shell: pwsh
+        run: |
+          $normalizedVersion = "${{ steps.version.outputs.normalized }}"
+          git rev-parse "refs/tags/v$normalizedVersion" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Tag v$normalizedVersion already exists"
+          }
+
+      - name: Prepare changelog and version metadata
+        shell: pwsh
+        run: |
+          ./scripts/release.ps1 -Version "${{ steps.version.outputs.normalized }}"
+
+      - name: Commit release changes
+        shell: bash
+        run: |
+          git add CHANGELOG.md data/version.json
+          git commit -m "release: v${{ steps.version.outputs.normalized }}"
+
+      - name: Refresh version metadata for release commit
+        shell: pwsh
+        run: |
+          ./scripts/update-version-json.ps1 -Version "${{ steps.version.outputs.normalized }}"
+
+      - name: Amend release commit with final hash and date
+        shell: bash
+        run: |
+          git add data/version.json
+          git commit --amend --no-edit
+
+      - name: Export release notes
+        shell: pwsh
+        run: |
+          ./scripts/export-release-notes.ps1 -Version "${{ steps.version.outputs.normalized }}" -OutputPath release-notes.md
+
+      - name: Push release commit and tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.normalized }}"
+          git tag "v$VERSION"
+          git push origin "HEAD:${{ inputs.target_branch }}"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.normalized }}
+          target_commitish: ${{ inputs.target_branch }}
+          body_path: release-notes.md
+          prerelease: ${{ inputs.prerelease }}

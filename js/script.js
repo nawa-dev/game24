@@ -170,7 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       const vOverlay = document.getElementById('version-overlay');
       if (vOverlay) {
-        vOverlay.innerText = `v${data.hash} - ${data.date}`;
+        const versionLabel = data.version ? `v${data.version}` : `build ${data.hash}`;
+        const buildLabel = data.hash ? ` (${data.hash})` : '';
+        const dateLabel = data.date ? ` - ${data.date}` : '';
+        vOverlay.innerText = `${versionLabel}${buildLabel}${dateLabel}`;
       }
     })
     .catch(e => console.log('No version.json available'));
