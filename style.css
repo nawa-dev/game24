@@ -1,3 +1,18 @@
+@font-face {
+  font-family: 'Mitr';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/Mitr-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Mitr';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/Mitr-SemiBold.ttf') format('truetype');
+}
+
 body {
   font-family: "Mitr", sans-serif;
   text-align: center;
