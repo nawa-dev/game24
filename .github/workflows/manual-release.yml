@@ -8,9 +8,9 @@ on:
         required: true
         type: string
       target_branch:
-        description: Branch to release from
-        required: true
-        default: master
+        description: Branch to release from. Leave blank to use the repository default branch.
+        required: false
+        default: ''
         type: string
       prerelease:
         description: Mark this GitHub release as a pre-release
@@ -38,11 +38,22 @@ jobs:
           $normalized = $version.TrimStart('v')
           "normalized=$normalized" >> $env:GITHUB_OUTPUT
 
+      - name: Resolve target branch
+        id: branch
+        shell: pwsh
+        run: |
+          $requestedBranch = "${{ inputs.target_branch }}".Trim()
+          if ([string]::IsNullOrWhiteSpace($requestedBranch)) {
+            $requestedBranch = "${{ github.event.repository.default_branch }}"
+          }
+
+          "name=$requestedBranch" >> $env:GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.target_branch }}
+          ref: ${{ steps.branch.outputs.name }}
 
       - name: Configure Git identity
         run: |
@@ -90,13 +101,13 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.normalized }}"
           git tag "v$VERSION"
-          git push origin "HEAD:${{ inputs.target_branch }}"
+          git push origin "HEAD:${{ steps.branch.outputs.name }}"
           git push origin "v$VERSION"
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.normalized }}
-          target_commitish: ${{ inputs.target_branch }}
+          target_commitish: ${{ steps.branch.outputs.name }}
           body_path: release-notes.md
           prerelease: ${{ inputs.prerelease }}

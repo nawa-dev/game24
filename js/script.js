@@ -105,9 +105,10 @@ function saveGameState(nums, target, solution) {
 
 function saveSettingsState() {
   const count = document.getElementById("count").value;
+  const target_mode = document.getElementById("target_mode").value;
   const digits = document.getElementById("digits").value;
   const ops = getSelectedOps();
-  const state = { count, digits, ops };
+  const state = { count, target_mode, digits, ops };
   localStorage.setItem('game24_settings', JSON.stringify(state));
 }
 
@@ -117,6 +118,7 @@ function loadCache() {
     try {
       const settings = JSON.parse(settingsStr);
       if (settings.count) document.getElementById("count").value = settings.count;
+      if (settings.target_mode) document.getElementById("target_mode").value = settings.target_mode;
       if (settings.digits) document.getElementById("digits").value = settings.digits;
       if (settings.ops) {
         document.querySelectorAll(".ops input").forEach(cb => {
@@ -179,6 +181,21 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(e => console.log('No version.json available'));
 
   loadCache();
+  
+  const updateDigitsVisibility = () => {
+    const mode = document.getElementById("target_mode").value;
+    const row = document.getElementById("digits_row");
+    if (row) row.style.display = mode === "24" ? "none" : "block";
+  };
+  
+  const targetModeEl = document.getElementById("target_mode");
+  if (targetModeEl) {
+    targetModeEl.addEventListener("change", () => {
+      updateDigitsVisibility();
+      saveSettingsState();
+    });
+    updateDigitsVisibility();
+  }
   
   ['count', 'digits'].forEach(id => {
     let el = document.getElementById(id);
@@ -378,6 +395,7 @@ async function generate() {
 
   window._lastSolution = null;
   let count = parseInt(document.getElementById("count").value);
+  let targetMode = document.getElementById("target_mode").value;
   let digits = parseInt(document.getElementById("digits").value);
   let opsSelected = getSelectedOps();
 
@@ -388,7 +406,7 @@ async function generate() {
 
   let min = Math.pow(10, digits - 1);
   let max = Math.pow(10, digits) - 1;
-  let target = Math.floor(Math.random() * (max - min + 1)) + min;
+  let target = targetMode === "24" ? 24 : Math.floor(Math.random() * (max - min + 1)) + min;
 
   let nums, solution;
   let attempts = 0;
@@ -407,7 +425,7 @@ async function generate() {
       document.getElementById("answer").innerText = typeof t === 'function' ? t('msg_unknown') : "?";
       return;
     }
-    if (attempts % 20 === 0) {
+    if (attempts % 20 === 0 && targetMode !== "24") {
       target = Math.floor(Math.random() * (max - min + 1)) + min;
     }
     nums = randomNums(count);
